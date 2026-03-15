@@ -124,7 +124,12 @@ export default function LicenseManager() {
                       </div>
                     </td>
                     <td><span className="badge-plan">{lic.plan}</span></td>
-                    <td>{lic.expiration ? new Date(lic.expiration).toLocaleDateString() : 'Vitalício'}</td>
+                    <td>
+                      {lic.expiration ? (() => {
+                        const [year, month, day] = lic.expiration.split('T')[0].split('-')
+                        return `${day}/${month}/${year}`
+                      })() : 'Vitalício'}
+                    </td>
                     <td>
                       <span className={`status-pill ${lic.status === 'ATIVO' ? 'active' : 'inactive'}`}>
                         {lic.status}
