@@ -144,6 +144,20 @@ export default function Dashboard() {
           text-align: center;
           color: var(--text-secondary);
         }
+        @media (max-width: 768px) {
+          .dashboard-layout {
+            flex-direction: column;
+          }
+          .dashboard-content {
+            padding: 80px 20px 40px 20px; /* Mais espaço no topo pro botão mobile */
+          }
+          .content-header h1 {
+            font-size: 24px;
+          }
+          .projects-grid {
+            max-width: 100%;
+          }
+        }
       `}</style>
     </div>
   )

@@ -59,20 +59,24 @@ export default function LicenseManager() {
   }
 
   const handleDelete = async (id) => {
-    if (confirm('Tem certeza que deseja excluir esta licença?')) {
+    if (confirm('Tem certeza que deseja excluir?')) {
       await supabase.from(tableName).delete().eq('id', id)
       fetchLicenses()
     }
   }
 
-  const filteredLicenses = licenses.filter(l => 
-    l.machine_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    l.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredLicenses = licenses.filter(l => {
+    if (tableName === 'streaming_tv') {
+      return l.nome?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+             l.telefone?.toLowerCase().includes(searchTerm.toLowerCase())
+    }
+    return l.machine_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           l.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  })
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
-    alert('ID Copiado!')
+    alert('Copiado!')
   }
 
   return (
@@ -91,7 +95,7 @@ export default function LicenseManager() {
             <Search size={18} color="#90A4AE" />
             <input 
               type="text" 
-              placeholder="Buscar por Machine ID ou Nome..." 
+              placeholder={tableName === 'streaming_tv' ? "Buscar por Nome ou Telefone..." : "Buscar por Machine ID ou Nome..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -101,47 +105,90 @@ export default function LicenseManager() {
         <div className="table-container glass">
           <table className="license-table">
             <thead>
-              <tr>
-                <th>Cliente / ID</th>
-                <th>Plano</th>
-                <th>Vencimento</th>
-                <th>Status</th>
-                <th>Ações</th>
-              </tr>
+              {tableName === 'streaming_tv' ? (
+                <tr>
+                  <th>Cliente / Telefone</th>
+                  <th>App / Plano</th>
+                  <th>Vencimento</th>
+                  <th>Valor</th>
+                  <th>Ações</th>
+                </tr>
+              ) : (
+                <tr>
+                  <th>Cliente / ID</th>
+                  <th>Plano</th>
+                  <th>Vencimento</th>
+                  <th>Status</th>
+                  <th>Ações</th>
+                </tr>
+              )}
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="5" className="text-center">Carregando licenças...</td></tr>
+                <tr><td colSpan="5" className="text-center">Carregando registros...</td></tr>
               ) : filteredLicenses.length === 0 ? (
-                <tr><td colSpan="5" className="text-center">Nenhuma licença encontrada.</td></tr>
+                <tr><td colSpan="5" className="text-center">Nenhum registro encontrado.</td></tr>
               ) : (
                 filteredLicenses.map((lic) => (
                   <tr key={lic.id}>
-                    <td>
-                      <div className="client-info">
-                        <strong>{lic.name}</strong>
-                        <span>{lic.machine_id}</span>
-                      </div>
-                    </td>
-                    <td><span className="badge-plan">{lic.plan}</span></td>
-                    <td>
-                      {lic.expiration ? (() => {
-                        const [year, month, day] = lic.expiration.split('T')[0].split('-')
-                        return `${day}/${month}/${year}`
-                      })() : 'Vitalício'}
-                    </td>
-                    <td>
-                      <span className={`status-pill ${lic.status === 'ATIVO' ? 'active' : 'inactive'}`}>
-                        {lic.status}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="action-btns">
-                        <button onClick={() => copyToClipboard(lic.machine_id)} title="Copiar ID"><Copy size={16} /></button>
-                        <button onClick={() => { setSelectedLicense(lic); setIsModalOpen(true); }} title="Editar"><Edit3 size={16} /></button>
-                        <button onClick={() => handleDelete(lic.id)} title="Excluir" className="delete-btn"><Trash2 size={16} /></button>
-                      </div>
-                    </td>
+                    {tableName === 'streaming_tv' ? (
+                      <>
+                        <td>
+                          <div className="client-info">
+                            <strong>{lic.nome}</strong>
+                            <span>{lic.telefone}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="client-info">
+                            <strong>{lic.aplicativo}</strong>
+                            <span className="badge-plan">{lic.plano}</span>
+                          </div>
+                        </td>
+                        <td>
+                          {lic.vencimento ? (() => {
+                            const [year, month, day] = lic.vencimento.split('T')[0].split('-')
+                            return `${day}/${month}/${year}`
+                          })() : '-'}
+                        </td>
+                        <td><span className="valor-badge">R$ {lic.valor}</span></td>
+                        <td>
+                          <div className="action-btns">
+                            <button onClick={() => copyToClipboard(lic.telefone)} title="Copiar Telefone"><Copy size={16} /></button>
+                            <button onClick={() => { setSelectedLicense(lic); setIsModalOpen(true); }} title="Editar"><Edit3 size={16} /></button>
+                            <button onClick={() => handleDelete(lic.id)} title="Excluir" className="delete-btn"><Trash2 size={16} /></button>
+                          </div>
+                        </td>
+                      </>
+                    ) : (
+                      <>
+                        <td>
+                          <div className="client-info">
+                            <strong>{lic.name}</strong>
+                            <span>{lic.machine_id}</span>
+                          </div>
+                        </td>
+                        <td><span className="badge-plan">{lic.plan}</span></td>
+                        <td>
+                          {lic.expiration ? (() => {
+                            const [year, month, day] = lic.expiration.split('T')[0].split('-')
+                            return `${day}/${month}/${year}`
+                          })() : 'Vitalício'}
+                        </td>
+                        <td>
+                          <span className={`status-pill ${lic.status === 'ATIVO' ? 'active' : 'inactive'}`}>
+                            {lic.status}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="action-btns">
+                            <button onClick={() => copyToClipboard(lic.machine_id)} title="Copiar ID"><Copy size={16} /></button>
+                            <button onClick={() => { setSelectedLicense(lic); setIsModalOpen(true); }} title="Editar"><Edit3 size={16} /></button>
+                            <button onClick={() => handleDelete(lic.id)} title="Excluir" className="delete-btn"><Trash2 size={16} /></button>
+                          </div>
+                        </td>
+                      </>
+                    )}
                   </tr>
                 ))
               )}
@@ -166,21 +213,23 @@ export default function LicenseManager() {
         .search-bar { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-radius: 12px; margin-bottom: 30px; width: 100%; max-width: 500px; }
         .search-bar input { background: transparent; border: none; color: white; outline: none; width: 100%; font-size: 14px; }
         
-        .table-container { border-radius: 16px; overflow: hidden; padding: 8px; border: 1px solid var(--glass-border); }
+        .table-container { border-radius: 16px; overflow-x: auto; padding: 8px; border: 1px solid var(--glass-border); }
         .license-table { width: 100%; border-collapse: collapse; text-align: left; }
-        .license-table th { padding: 18px 20px; font-size: 13px; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--glass-border); text-transform: uppercase; letter-spacing: 0.5px; }
-        .license-table td { padding: 16px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.03); vertical-align: middle; }
+        .license-table th { padding: 18px 20px; font-size: 13px; font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--glass-border); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        .license-table td { padding: 16px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.03); vertical-align: middle; white-space: nowrap; }
         
         .client-info { display: flex; flex-direction: column; gap: 2px; }
         .client-info strong { font-size: 15px; color: white; }
         .client-info span { font-size: 11px; font-family: 'JetBrains Mono', 'Courier New', monospace; color: var(--text-secondary); opacity: 0.7; }
         
-        .badge-plan { background: rgba(79, 195, 247, 0.1); color: var(--accent-blue); padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; border: 1px solid rgba(79, 195, 247, 0.2); display: inline-block; }
+        .badge-plan { background: rgba(79, 195, 247, 0.1); color: var(--accent-blue); padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 800; border: 1px solid rgba(79, 195, 247, 0.2); display: inline-block; margin-top: 2px; width: fit-content; }
         
         .status-pill { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; display: inline-block; }
         .status-pill.active { background: rgba(102, 187, 106, 0.1); color: var(--success); border: 1px solid rgba(102, 187, 106, 0.2); }
         .status-pill.inactive { background: rgba(239, 83, 80, 0.1); color: var(--error); border: 1px solid rgba(239, 83, 80, 0.2); }
         
+        .valor-badge { color: #fff; font-weight: 600; font-size: 14px; }
+
         .action-btns { display: flex; gap: 10px; }
         .action-btns button {
           background: rgba(255, 255, 255, 0.04);
@@ -194,11 +243,9 @@ export default function LicenseManager() {
           align-items: center;
           justify-content: center;
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-          padding: 0; /* Remove padding que possa desalinhanciar */
+          padding: 0; 
         }
-        .action-btns button svg {
-          display: block;
-        }
+        .action-btns button svg { display: block; }
         .action-btns button:hover { 
           background: var(--accent-blue); 
           color: var(--bg-deep); 
@@ -208,6 +255,15 @@ export default function LicenseManager() {
         .action-btns .delete-btn:hover { background: var(--error); color: white; border-color: var(--error); }
         
         .text-center { text-align: center; padding: 60px !important; color: var(--text-secondary); font-style: italic; }
+
+        @media (max-width: 768px) {
+          .dashboard-layout { flex-direction: column; }
+          .dashboard-content { padding: 80px 16px 20px 16px; }
+          .header-top { flex-direction: column; align-items: flex-start; gap: 16px; }
+          .header-top h1 { font-size: 24px; }
+          .search-bar { max-width: 100%; }
+          .license-table { min-width: 600px; }
+        }
       `}</style>
     </div>
   )
