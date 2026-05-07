@@ -61,7 +61,17 @@ export default function LicenseModal({ isOpen, onClose, onSave, license, tableNa
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onSave(formData)
+    
+    // Limpar campos de data vazios (evitar erro de timestamptz do Supabase)
+    const dataToSubmit = { ...formData }
+    if (tableName === 'streaming_tv') {
+      if (!dataToSubmit.inicio) dataToSubmit.inicio = null
+      if (!dataToSubmit.vencimento) dataToSubmit.vencimento = null
+    } else {
+      if (!dataToSubmit.expiration) dataToSubmit.expiration = null
+    }
+
+    onSave(dataToSubmit)
   }
 
   return (
