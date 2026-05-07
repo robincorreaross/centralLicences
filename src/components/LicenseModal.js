@@ -11,6 +11,7 @@ export default function LicenseModal({ isOpen, onClose, onSave, license, tableNa
         setFormData({
           telefone: license.telefone || '',
           nome: license.nome || '',
+          email: license.email || '',
           aplicativo: license.aplicativo || '',
           plano: license.plano || 'Mensal',
           cod_recarga: license.cod_recarga || '',
@@ -22,6 +23,7 @@ export default function LicenseModal({ isOpen, onClose, onSave, license, tableNa
         setFormData({
           telefone: '',
           nome: '',
+          email: '',
           aplicativo: '',
           plano: 'Mensal',
           cod_recarga: '',
@@ -85,14 +87,25 @@ export default function LicenseModal({ isOpen, onClose, onSave, license, tableNa
         <form onSubmit={handleSubmit} className="modal-form">
           {tableName === 'streaming_tv' ? (
             <>
-              <div className="form-group">
-                <label>Nome do Cliente</label>
-                <input 
-                  className="input-field" 
-                  value={formData.nome || ''} 
-                  onChange={(e) => setFormData({...formData, nome: e.target.value})}
-                  required 
-                />
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Nome do Cliente</label>
+                  <input 
+                    className="input-field" 
+                    value={formData.nome || ''} 
+                    onChange={(e) => setFormData({...formData, nome: e.target.value})}
+                    required 
+                  />
+                </div>
+                <div className="form-group">
+                  <label>E-mail</label>
+                  <input 
+                    type="email"
+                    className="input-field" 
+                    value={formData.email || ''} 
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  />
+                </div>
               </div>
 
               <div className="form-row">
